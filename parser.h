@@ -10,7 +10,9 @@
 
 #pragma once
 
+#include <stdio.h>
 #include <stdbool.h>  // true, false
+
 #include "tokenqueue.h"
 
 
