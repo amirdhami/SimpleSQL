@@ -5,14 +5,10 @@
 // against this database. For now we just output the database
 // schema, the AST for each query, and the first 5 lines
 // of the references table.
-//
-// Prof. Joe Hummel (solution)
-// Northwestern University
-// CS 211, Winter 2023
-//
 
 #include <assert.h>  // assert
 #include <ctype.h>   // isdigit
+#include <math.h>    // fabs
 #include <stdbool.h> // true, false
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +23,8 @@
 #include "scanner.h"
 #include "tokenqueue.h"
 #include "util.h"
+
+#include "gtest/gtest.h"
 
 
 //
@@ -237,7 +235,319 @@
 
   printf("**END OF QUERY AST**\n");
 }*/
+TEST(execute_query, basic_select) {
+  //
+  // Write our test query to a file, then open that
+  // file for parsing:
+  //
+  FILE *output = fopen("input.txt", "w");
+  fprintf(output, "Select * From Movies2 limit 3;\n$\n");
+  fclose(output);
+  FILE *input = fopen("input.txt", "r");
 
+  //
+  // open the database the query needs, and then
+  // parse, analyze, and execute the query:
+  //
+  struct Database *db = database_open("MovieLens2");
+  parser_init();
+
+  struct TokenQueue *tq = parser_parse(input);
+  ASSERT_TRUE(tq != NULL);
+
+  struct QUERY *query = analyzer_build(db, tq);
+  ASSERT_TRUE(query != NULL);
+
+  struct ResultSet *rs = execute_query(db, query);
+  ASSERT_TRUE(rs != NULL);
+
+  ASSERT_TRUE(rs->numCols == 4);
+  ASSERT_TRUE(rs->numRows == 3);
+
+  struct RSColumn* column1 = rs->columns;
+  
+  ASSERT_TRUE(column1 != NULL);
+  ASSERT_TRUE(column1->coltype == COL_TYPE_INT);
+  
+  struct RSColumn* column2=column1->next;
+  ASSERT_TRUE(column2 != NULL);
+  ASSERT_TRUE(column2->coltype == COL_TYPE_STRING);
+  
+  struct RSColumn* column3=column2->next;
+  ASSERT_TRUE(column3 != NULL);
+  ASSERT_TRUE(column3->coltype == COL_TYPE_INT);
+  
+  struct RSColumn* column4=column3->next;
+  ASSERT_TRUE(column4 != NULL);
+  ASSERT_TRUE(column4->coltype == COL_TYPE_REAL);
+
+  ASSERT_TRUE(column4->next == NULL);
+  //
+  // check the data that should be in row 2:
+  //
+  ASSERT_TRUE(resultset_getInt(rs, 2, 1) == 111);
+  ASSERT_TRUE(strcmp(resultset_getString(rs, 2, 2), "Scarface") == 0);
+  ASSERT_TRUE(resultset_getInt(rs, 2, 3) == 1983);
+  ASSERT_TRUE(fabs(resultset_getReal(rs, 2, 4) - 65884703.0) < 0.00001);
+
+  //
+  // TODO: add more checks to this test?
+  //
+}
+
+TEST(execute_query, test02_LTE){
+  FILE *output = fopen("input.txt", "w");
+  fprintf(output, "Select ID, Title From Movies2 where ID <= 260;\n$\n");
+  fclose(output);
+  FILE *input = fopen("input.txt", "r");
+  
+  struct Database *db = database_open("MovieLens2");
+  parser_init();
+
+  struct TokenQueue *tq = parser_parse(input);
+  ASSERT_TRUE(tq != NULL);
+
+  struct QUERY *query = analyzer_build(db, tq);
+  ASSERT_TRUE(query != NULL);
+
+  struct ResultSet *rs = execute_query(db, query);
+  
+  ASSERT_TRUE(rs != NULL);
+
+  ASSERT_TRUE(rs->numCols == 2);
+  ASSERT_TRUE(rs->numRows == 2);
+
+  struct RSColumn* column1 = rs->columns;
+  ASSERT_TRUE(column1 != NULL);
+  ASSERT_TRUE(column1->coltype == COL_TYPE_INT);
+
+  for(int i = rs->numRows -1; i>=0;i--){
+    int rs_int = resultset_getInt(rs, i + 1, 1);
+    
+
+    if(i == 1){
+      ASSERT_TRUE(rs_int == 260);
+    }
+    if(i == 0){
+      ASSERT_TRUE(rs_int == 111);
+    }
+    
+    
+  }
+
+  
+  struct RSColumn* column2=column1->next;
+  ASSERT_TRUE(column2 != NULL);
+  ASSERT_TRUE(column2->coltype == COL_TYPE_STRING);
+
+  for(int i = rs->numRows -1; i>=0;i--){
+    char *rs_str = resultset_getString(rs, i + 1, 2);
+    
+    if(i == 1){
+      ASSERT_TRUE(strcmp(rs_str, "The 39 Steps") == 0);
+    }
+    if(i == 0){
+       ASSERT_TRUE(strcmp(rs_str, "Scarface") == 0);;
+    }
+    free(rs_str);
+    
+  }
+  
+}
+TEST(execute_query, test02_LT){
+  FILE *output = fopen("input.txt", "w");
+  fprintf(output, "Select ID, Title From Movies2 where ID < 293;\n$\n");
+  fclose(output);
+  FILE *input = fopen("input.txt", "r");
+  
+  struct Database *db = database_open("MovieLens2");
+  parser_init();
+
+  struct TokenQueue *tq = parser_parse(input);
+  ASSERT_TRUE(tq != NULL);
+
+  struct QUERY *query = analyzer_build(db, tq);
+  ASSERT_TRUE(query != NULL);
+
+  struct ResultSet *rs = execute_query(db, query);
+  ASSERT_TRUE(rs != NULL);
+
+  ASSERT_TRUE(rs->numCols == 2);
+  ASSERT_TRUE(rs->numRows == 2);
+
+  struct RSColumn* column1 = rs->columns;
+  ASSERT_TRUE(column1 != NULL);
+  ASSERT_TRUE(column1->coltype == COL_TYPE_INT);
+
+  for(int i = rs->numRows -1; i>=0;i--){
+    int rs_int = resultset_getInt(rs, i + 1, 1);
+    
+
+    if(i == 1){
+      ASSERT_TRUE(rs_int == 260);
+    }
+    if(i == 0){
+      ASSERT_TRUE(rs_int == 111);
+    }
+    
+    
+  }
+
+  
+  struct RSColumn* column2=column1->next;
+  ASSERT_TRUE(column2 != NULL);
+  ASSERT_TRUE(column2->coltype == COL_TYPE_STRING);
+
+  for(int i = rs->numRows -1; i>=0;i--){
+    char *rs_str = resultset_getString(rs, i + 1, 2);
+    
+    if(i == 1){
+      ASSERT_TRUE(strcmp(rs_str, "The 39 Steps") == 0);
+    }
+    if(i == 0){
+       ASSERT_TRUE(strcmp(rs_str, "Scarface") == 0);;
+    }
+    free(rs_str);
+    
+  }
+
+  
+}
+TEST(execute_query, test03_min){
+  //
+  // Write our test query to a file, then open that
+  // file for parsing:
+  //
+  FILE *output = fopen("input.txt", "w");
+  fprintf(output, "Select min(Date) From Ridership;\n$\n");
+  fclose(output);
+  FILE *input = fopen("input.txt", "r");
+
+  
+  //
+  // open the database the query needs, and then
+  // parse, analyze, and execute the query:
+  //
+  struct Database *db = database_open("CTA");
+  parser_init();
+
+  struct TokenQueue *tq = parser_parse(input);
+  ASSERT_TRUE(tq != NULL);
+
+  struct QUERY *query = analyzer_build(db, tq);
+  ASSERT_TRUE(query != NULL);
+
+  
+  struct ResultSet *rs = execute_query(db, query);
+  
+  ASSERT_TRUE(rs != NULL);
+
+  
+  ASSERT_TRUE(rs->numCols == 1);
+  ASSERT_TRUE(rs->numRows == 1);
+
+  
+  struct RSColumn* column1 = rs->columns;
+  ASSERT_TRUE(column1 != NULL);
+  ASSERT_TRUE(column1->coltype == COL_TYPE_STRING);
+
+  char *rs_str = resultset_getString(rs, 1, 1); 
+  ASSERT_TRUE(strcmp(rs_str, "2017-12-01") == 0);
+  
+  
+  free(rs_str);
+    
+}
+TEST(execute_query, test04_max){
+  //
+  // Write our test query to a file, then open that
+  // file for parsing:
+  //
+  FILE *output = fopen("input.txt", "w");
+  fprintf(output, "Select max(Date) From Ridership;\n$\n");
+  fclose(output);
+  FILE *input = fopen("input.txt", "r");
+
+  
+  //
+  // open the database the query needs, and then
+  // parse, analyze, and execute the query:
+  //
+  struct Database *db = database_open("CTA");
+  parser_init();
+
+  struct TokenQueue *tq = parser_parse(input);
+  ASSERT_TRUE(tq != NULL);
+
+  struct QUERY *query = analyzer_build(db, tq);
+  ASSERT_TRUE(query != NULL);
+
+  
+  struct ResultSet *rs = execute_query(db, query);
+  
+  ASSERT_TRUE(rs != NULL);
+
+  
+  ASSERT_TRUE(rs->numCols == 1);
+  ASSERT_TRUE(rs->numRows == 1);
+
+  
+  struct RSColumn* column1 = rs->columns;
+  ASSERT_TRUE(column1 != NULL);
+  ASSERT_TRUE(column1->coltype == COL_TYPE_STRING);
+
+  char *rs_str = resultset_getString(rs, 1, 1); 
+  ASSERT_TRUE(strcmp(rs_str, "2018-11-30") == 0);
+ 
+  
+  free(rs_str);
+    
+
+  
+}
+
+TEST(execute_query, test05_avg){
+   FILE *output = fopen("input.txt", "w");
+  fprintf(output, "Select Avg(Revenue), Title from Movies2;\n$\n");
+  fclose(output);
+  FILE *input = fopen("input.txt", "r");
+  
+  struct Database *db = database_open("MovieLens2");
+  parser_init();
+
+  struct TokenQueue *tq = parser_parse(input);
+  ASSERT_TRUE(tq != NULL);
+
+  struct QUERY *query = analyzer_build(db, tq);
+  ASSERT_TRUE(query != NULL);
+
+  struct ResultSet *rs = execute_query(db, query);
+  
+  ASSERT_TRUE(rs != NULL);
+
+  ASSERT_TRUE(rs->numCols == 2);
+  ASSERT_TRUE(rs->numRows == 1);
+
+  struct RSColumn* column1 = rs->columns;
+  ASSERT_TRUE(column1 != NULL);
+  ASSERT_TRUE(column1->coltype == COL_TYPE_REAL);
+
+  double rs_real = resultset_getReal(rs, 1, 1);
+  ASSERT_TRUE(fabs(rs_real - 75495851.222222) < 0.00001);
+
+  
+  struct RSColumn* column2=column1->next;
+  ASSERT_TRUE(column2 != NULL);
+  ASSERT_TRUE(column2->coltype == COL_TYPE_STRING);
+
+  char *rs_str = resultset_getString(rs, 1, 2);
+  ASSERT_TRUE(strcmp(rs_str, "The Thomas Crown Affair") == 0 );
+
+  free(rs_str);
+    
+  
+}
+  
 
 //
 // main
@@ -338,5 +648,13 @@ int main()
   
   database_close(db);
 
-  return 0;
+  ::testing::InitGoogleTest();
+
+  //
+  // run all the tests, returns 0 if they
+  // all pass and 1 if any fail:
+  //
+  int result = RUN_ALL_TESTS();
+
+  return result; // 0 => all passed
 }
