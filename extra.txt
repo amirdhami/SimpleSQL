@@ -1,16 +1,5 @@
 /*main.c*/
 
-//
-// Program to open a database and "execute" select queries
-// against this database. For now we only support select
-// with where clauses, limit, and aggregate functions
-// min, max, avg, sum and count.
-//
-// Prof. Joe Hummel
-// Northwestern University
-// CS 211, Winter 2023
-//
-
 #include <assert.h>  // assert
 #include <ctype.h>   // isdigit
 #include <stdbool.h> // true, false
