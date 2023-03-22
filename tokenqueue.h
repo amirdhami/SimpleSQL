@@ -2,11 +2,6 @@
 
 //
 // Project: Token Queue for SimpleSQL
-//
-// Prof. Joe Hummel
-// Northwestern University
-// CS 211, Winter 2023
-//
 
 #pragma once
 
