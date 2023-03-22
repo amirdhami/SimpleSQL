@@ -1,13 +1,5 @@
 /*resultset.h*/
 
-//
-// Project: Result Set for SimpleSQL
-//
-// Prof. Joe Hummel
-// Northwestern University
-// CS 211, Winter 2023
-//
-
 #pragma once
 
 #include "ast.h"
