@@ -71,7 +71,7 @@ git push origin feature/your-feature-name
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 
 Thank you for using SimpleSQL! We hope this SQL execution environment simplifies your data manipulation tasks. Your feedback and suggestions are greatly appreciated as we continue to enhance this tool. Happy querying!
